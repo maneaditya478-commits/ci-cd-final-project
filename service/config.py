@@ -3,6 +3,9 @@ Global Configuration for Application
 """
 import os
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Get configuration from environment
 DATABASE_URI = os.getenv(

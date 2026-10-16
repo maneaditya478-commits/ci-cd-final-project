@@ -165,7 +165,8 @@ class Product(db.Model):
         """
         logger.info("Initializing database")
         # This is where we initialize SQLAlchemy from the Flask app
-        db.init_app(app)
+        if "sqlalchemy" not in app.extensions:
+            db.init_app(app)
         app.app_context().push()
         db.create_all()  # make our sqlalchemy tables
 
