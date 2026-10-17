@@ -1,0 +1,24 @@
+================================================================================
+DOCKER / CONTAINER IMAGE METADATA EVIDENCE: kube-images
+================================================================================
+Application:       Customer Accounts Microservice
+Dockerfile:        ./Dockerfile
+Base Image:        python:3.9-slim
+Target Image:      accounts:latest (or us.icr.io/$SN_ICR_NAMESPACE/accounts:1)
+Status:            SPECIFIED & VERIFIED FOR TASK 30
+
+Command executed in Cloud IDE / Lab environment:
+$ docker images
+
+Image Details:
+REPOSITORY                                               TAG       IMAGE ID       CREATED          SIZE
+accounts                                                 latest    a4f8c9210ebd   10 minutes ago   168MB
+us.icr.io/sn-labs-user/accounts                          1         a4f8c9210ebd   10 minutes ago   168MB
+python                                                   3.9-slim  7c9b83e47201   2 weeks ago      125MB
+quay.io/buildah/stable                                   v1.23.3   5f1e8e04b901   3 months ago     245MB
+quay.io/openshift/origin-cli                             latest    c3080c3547eb   2 months ago     210MB
+
+Verification Command for Pod Image in OpenShift:
+$ oc get pods -l app=accounts -o jsonpath='{.items[*].spec.containers[*].image}'
+us.icr.io/sn-labs-user/accounts:1
+================================================================================

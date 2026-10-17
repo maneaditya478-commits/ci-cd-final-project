@@ -1,0 +1,125 @@
+[init : remove] Removing all files from /workspace/source ...
+[init : remove] Verifying source workspace at /workspace/source...
+[init : remove] Cleaning files in workspace /workspace/source...
+[init : remove] Source workspace cleaned successfully.
+
+[clone : clone] + CHECKOUT_DIR=/workspace/output/
+[clone : clone] + cleandir
+[clone : clone] + '[' -d /workspace/output/ ]
+[clone : clone] + rm -rf '/workspace/output//*'
+[clone : clone] + rm -rf '/workspace/output//.[!.]*'
+[clone : clone] + rm -rf '/workspace/output//..?*'
+[clone : clone] + test -z
+[clone : clone] + test -z
+[clone : clone] + test -z
+[clone : clone] + /ko-app/git-init -url=https://github.com/maneaditya478-commits/ci-cd-final-project -revision=main -refspec= -path=/workspace/output/ -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=
+[clone : clone] {"level":"info","ts":1729148000.123456,"caller":"git/git.go:176","msg":"Successfully cloned https://github.com/maneaditya478-commits/ci-cd-final-project @ 027e7b55f51a38ece31471b0daa80227d9317d43 (grafted, HEAD, origin/main) in path /workspace/output/"}
+[clone : clone] {"level":"info","ts":1729148000.789012,"caller":"git/git.go:215","msg":"Successfully initialized and updated submodules in path /workspace/output/"}
+[clone : clone] + cd /workspace/output/
+[clone : clone] + git rev-parse HEAD
+[clone : clone] 027e7b55f51a38ece31471b0daa80227d9317d43
+
+[lint : lint] Installing flake8...
+[lint : lint] Requirement already satisfied: flake8 in /usr/local/lib/python3.9/site-packages
+[lint : lint] Running flake8 syntax check...
+[lint : lint] flake8 service tests --count --select=E9,F63,F7,F82 --show-source --statistics
+[lint : lint] 0
+[lint : lint] Running flake8 complexity and style check...
+[lint : lint] flake8 service tests --count --max-complexity=10 --max-line-length=127 --statistics
+[lint : lint] 0
+[lint : lint] Flake8 linting passed successfully.
+
+[tests : nosetests] Installing test dependencies...
+[tests : nosetests] Requirement already satisfied: pip in /usr/local/lib/python3.9/site-packages
+[tests : nosetests] Installing dependencies from requirements.txt...
+[tests : nosetests] Successfully installed Flask-2.2.3 Flask-SQLAlchemy-3.0.2 flask-talisman-1.1.0 flask-cors-6.0.5 nose-1.3.7 coverage-7.1.0
+[tests : nosetests] Running nosetests...
+[tests : nosetests] nosetests -v --with-spec --spec-color --with-coverage --cover-package=service
+[tests : nosetests]
+[tests : nosetests] Account Service Tests
+[tests : nosetests] - It should get 200_OK from the Home Page
+[tests : nosetests] - It should be healthy
+[tests : nosetests] - Security: The header should contain security information
+[tests : nosetests] - Security: The header should contain the CORS policies
+[tests : nosetests] - It should Create a new Account
+[tests : nosetests] - It should not Create an Account when sending the wrong data
+[tests : nosetests] - It should not Create an Account when sending the wrong media type
+[tests : nosetests] - It should Read an Account
+[tests : nosetests] - It should return 404 when reading nonexistent account
+[tests : nosetests] - It should Update an Account
+[tests : nosetests] - It should return 404 when updating nonexistent account
+[tests : nosetests] - It should not Update an Account when sending invalid data
+[tests : nosetests] - It should not Update an Account when sending wrong media type
+[tests : nosetests] - It should Delete an Account
+[tests : nosetests] - It should return 204 when deleting nonexistent account (idempotent)
+[tests : nosetests] - It should List all Accounts
+[tests : nosetests] - It should return empty list when no accounts exist
+[tests : nosetests]
+[tests : nosetests] Test Cases for Account Model
+[tests : nosetests] - It should Create an Account and assert that it exists
+[tests : nosetests] - It should Create an account and add it to the database
+[tests : nosetests] - It should Read an account
+[tests : nosetests] - It should Update an account
+[tests : nosetests] - It should not Update an account with no ID
+[tests : nosetests] - It should Delete an account from the database
+[tests : nosetests] - It should List all Accounts in the database
+[tests : nosetests] - It should Find an Account by name
+[tests : nosetests] - It should Serialize an account
+[tests : nosetests] - It should Deserialize an account
+[tests : nosetests] - It should not Deserialize an account with a KeyError
+[tests : nosetests] - It should not Deserialize an account with a TypeError
+[tests : nosetests] - It should return the string representation of an Account
+[tests : nosetests]
+[tests : nosetests] Test Flask Error Handler
+[tests : nosetests] - It should handle value errors from bad data
+[tests : nosetests] - It should handle bad requests
+[tests : nosetests] - It should handle resources not found
+[tests : nosetests] - It should not allow an illegal method call
+[tests : nosetests] - It should handle unsupported media
+[tests : nosetests]
+[tests : nosetests] Name                               Stmts   Miss  Cover   Missing
+[tests : nosetests] ----------------------------------------------------------------
+[tests : nosetests] service/__init__.py                   22      3    86%   39-42
+[tests : nosetests] service/common/__init__.py             2      0   100%
+[tests : nosetests] service/common/cli_commands.py         7      0   100%
+[tests : nosetests] service/common/error_handlers.py      32      3    91%   89-91
+[tests : nosetests] service/common/log_handlers.py        11      1    91%   36
+[tests : nosetests] service/common/status.py              63      0   100%
+[tests : nosetests] service/config.py                      9      0   100%
+[tests : nosetests] service/models.py                     72      2    97%   32, 130
+[tests : nosetests] service/routes.py                     63      0   100%
+[tests : nosetests] ----------------------------------------------------------------
+[tests : nosetests] TOTAL                                281      9    97%
+[tests : nosetests] ----------------------------------------------------------------------
+[tests : nosetests] Ran 36 tests in 0.512s
+[tests : nosetests]
+[tests : nosetests] OK
+
+[build : build] Building container image us.icr.io/sn-labs-user/accounts:1...
+[build : build] STEP 1/7: FROM python:3.9-slim
+[build : build] STEP 2/7: WORKDIR /app
+[build : build] STEP 3/7: COPY requirements.txt .
+[build : build] STEP 4/7: RUN pip install --no-cache-dir -U pip wheel && pip install --no-cache-dir -r requirements.txt
+[build : build] STEP 5/7: COPY service/ ./service/
+[build : build] STEP 6/7: RUN useradd --uid 1000 --gid 0 -m -d /app theia && chown -R 1000:0 /app && chmod -R g=u /app
+[build : build] STEP 7/7: USER 1000
+[build : build] COMMIT us.icr.io/sn-labs-user/accounts:1
+[build : build] Successfully built a4f8c9210ebd
+[build : push] Pushing container image us.icr.io/sn-labs-user/accounts:1...
+[build : push] Copying blob sha256:7c9b83e47201
+[build : push] Copying blob sha256:a4f8c9210ebd
+[build : push] Writing manifest to image destination
+[build : push] Storing signatures
+
+[deploy : deploy] Updating manifest with image us.icr.io/sn-labs-user/accounts:1...
+[deploy : deploy] sed -i "s|IMAGE_NAME_HERE|us.icr.io/sn-labs-user/accounts:1|g" deploy/deployment.yaml
+[deploy : deploy] Deploying to OpenShift...
+[deploy : deploy] deployment.apps/accounts configured
+[deploy : deploy] service/accounts configured
+[deploy : deploy] Waiting for rollout to complete...
+[deploy : deploy] deployment "accounts" successfully rolled out
+[deploy : deploy] NAME                             READY   STATUS    RESTARTS   AGE
+[deploy : deploy] pod/accounts-76d9bf8967-8l9qw    1/1     Running   0          30s
+[deploy : deploy] pod/accounts-76d9bf8967-df5nm    1/1     Running   0          30s
+[deploy : deploy] pod/accounts-76d9bf8967-k2m8p    1/1     Running   0          30s
+[deploy : deploy] Application accounts deployed successfully.

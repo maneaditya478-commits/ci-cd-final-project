@@ -1,0 +1,16 @@
+$ curl.exe -i -X GET http://127.0.0.1:8000/accounts
+
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.9 Python/3.13.0
+Date: Sat, 17 Oct 2026 16:47:57 GMT
+Content-Type: application/json
+Content-Length: 290
+Access-Control-Allow-Origin: *
+Permissions-Policy: browsing-topics=()
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Content-Security-Policy: default-src 'self'; object-src 'none'
+Referrer-Policy: strict-origin-when-cross-origin
+Connection: close
+
+[{"address":"456 Main St","date_joined":"2024-01-01","email":"janedoe@example.com","id":1,"name":"Jane Doe Updated","phone_number":"555-987-6543"},{"address":"123 Main Street","date_joined":"2026-10-17","email":"johndoe@example.com","id":2,"name":"John Doe","phone_number":"555-123-4567"}]
