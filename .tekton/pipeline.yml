@@ -1,0 +1,116 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: cd-pipeline
+spec:
+  description: CI/CD Pipeline for Product Catalogue Microservice
+  params:
+    - name: git-url
+      type: string
+      description: The git repository URL
+      default: "https://github.com/maneaditya478-commits/product-catalogue-microservice"
+    - name: git-revision
+      type: string
+      description: The git revision (branch, tag)
+      default: "main"
+    - name: image-name
+      type: string
+      description: The fully qualified image name to build and deploy
+      default: "image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/product-catalogue:latest"
+    - name: app-name
+      type: string
+      description: The name of the application
+      default: "product-catalogue"
+  workspaces:
+    - name: pipeline-workspace
+  tasks:
+    - name: cleanup
+      taskRef:
+        name: cleanup
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+
+    - name: git-clone
+      taskRef:
+        name: git-clone
+      runAfter:
+        - cleanup
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+      workspaces:
+        - name: output
+          workspace: pipeline-workspace
+
+    - name: flake8
+      taskRef:
+        name: flake8
+      runAfter:
+        - git-clone
+      params:
+        - name: args
+          value: "service tests"
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+
+    - name: nose
+      taskRef:
+        name: nose
+      runAfter:
+        - flake8
+      params:
+        - name: args
+          value: "-v --with-spec --spec-color --with-coverage --cover-package=service"
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+
+    - name: buildah
+      taskRef:
+        name: buildah
+      runAfter:
+        - nose
+      params:
+        - name: IMAGE
+          value: $(params.image-name)
+        - name: DOCKERFILE
+          value: "./Dockerfile"
+        - name: CONTEXT
+          value: "."
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+
+    - name: deploy
+      taskRef:
+        name: deploy
+      runAfter:
+        - buildah
+      params:
+        - name: image
+          value: $(params.image-name)
+        - name: app_name
+          value: $(params.app-name)
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: cd-pipeline-run
+spec:
+  pipelineRef:
+    name: cd-pipeline
+  params:
+    - name: git-url
+      value: "https://github.com/maneaditya478-commits/product-catalogue-microservice"
+    - name: git-revision
+      value: "main"
+    - name: app-name
+      value: "product-catalogue"
+  workspaces:
+    - name: pipeline-workspace
+      persistentVolumeClaim:
+        claimName: pipeline-pvc

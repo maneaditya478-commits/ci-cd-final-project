@@ -1,0 +1,209 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: cleanup
+spec:
+  description: Cleans the shared source workspace before cloning
+  workspaces:
+    - name: source
+  steps:
+    - name: clean
+      image: alpine:latest
+      workingDir: $(workspaces.source.path)
+      securityContext:
+        runAsUser: 0
+      script: |
+        #!/bin/sh
+        set -e
+        echo "Verifying source workspace at $(workspaces.source.path)..."
+        if [ ! -d "$(workspaces.source.path)" ]; then
+          echo "Source workspace does not exist. Nothing to clean."
+          exit 0
+        fi
+        echo "Cleaning files in workspace $(workspaces.source.path)..."
+        rm -rf "$(workspaces.source.path)"/*
+        rm -rf "$(workspaces.source.path)"/.[!.]*
+        echo "Source workspace cleaned successfully."
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: git-clone
+spec:
+  description: Clones a git repository into the shared workspace
+  workspaces:
+    - name: output
+  params:
+    - name: url
+      type: string
+      description: The git repository URL to clone
+    - name: revision
+      type: string
+      default: "main"
+      description: The git revision (branch, tag, commit) to checkout
+  steps:
+    - name: clone
+      image: alpine/git:latest
+      workingDir: $(workspaces.output.path)
+      script: |
+        #!/bin/sh
+        set -e
+        echo "Cloning $(params.url) (branch: $(params.revision)) into $(workspaces.output.path)..."
+        git clone -b $(params.revision) $(params.url) $(workspaces.output.path)
+        cd $(workspaces.output.path)
+        git status
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: flake8
+spec:
+  description: Runs flake8 linter on Python source code and test files
+  workspaces:
+    - name: source
+  params:
+    - name: image
+      type: string
+      default: "python:3.9-slim"
+      description: The container image to run flake8
+    - name: args
+      type: string
+      default: "service tests"
+      description: Target directories to lint
+  steps:
+    - name: lint
+      image: $(params.image)
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/bash
+        set -e
+        echo "Installing flake8..."
+        python -m pip install --upgrade pip
+        pip install flake8
+        echo "Running flake8 syntax check..."
+        flake8 $(params.args) --count --select=E9,F63,F7,F82 --show-source --statistics
+        echo "Running flake8 complexity and style check..."
+        flake8 $(params.args) --count --max-complexity=10 --max-line-length=127 --statistics
+        echo "Flake8 linting passed successfully."
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: nose
+spec:
+  description: Runs unit tests using nosetests
+  workspaces:
+    - name: source
+  params:
+    - name: image
+      type: string
+      default: "python:3.9-slim"
+      description: The container image to run tests
+    - name: args
+      type: string
+      default: "-v --with-spec --spec-color --with-coverage --cover-package=service"
+      description: Arguments passed to nosetests
+  steps:
+    - name: nosetests
+      image: $(params.image)
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: DATABASE_URI
+          value: "sqlite:///test.db"
+      script: |
+        #!/bin/bash
+        set -e
+        echo "Installing test dependencies..."
+        apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev
+        python -m pip install --upgrade pip wheel
+        pip install -r requirements.txt
+        echo "Running nosetests..."
+        nosetests $(params.args)
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: buildah
+spec:
+  description: Builds and pushes container image using buildah
+  workspaces:
+    - name: source
+  params:
+    - name: IMAGE
+      type: string
+      description: Reference of the image buildah will produce.
+    - name: BUILDER_IMAGE
+      type: string
+      default: quay.io/buildah/stable:v1.23.3
+      description: The location of the buildah builder image.
+    - name: STORAGE_DRIVER
+      type: string
+      default: vfs
+      description: Set buildah storage driver
+    - name: DOCKERFILE
+      type: string
+      default: ./Dockerfile
+      description: Path to the Dockerfile to build.
+    - name: CONTEXT
+      type: string
+      default: .
+      description: Path to the directory to use as context.
+    - name: TLSVERIFY
+      type: string
+      default: "false"
+      description: Verify the TLS on the registry endpoint
+  steps:
+    - name: build
+      image: $(params.BUILDER_IMAGE)
+      workingDir: $(workspaces.source.path)
+      securityContext:
+        privileged: true
+      script: |
+        echo "Building container image $(params.IMAGE)..."
+        buildah --storage-driver=$(params.STORAGE_DRIVER) bud \
+          --no-cache -f $(params.DOCKERFILE) -t $(params.IMAGE) $(params.CONTEXT)
+    - name: push
+      image: $(params.BUILDER_IMAGE)
+      workingDir: $(workspaces.source.path)
+      securityContext:
+        privileged: true
+      script: |
+        echo "Pushing container image $(params.IMAGE)..."
+        buildah --storage-driver=$(params.STORAGE_DRIVER) push \
+          --tls-verify=$(params.TLSVERIFY) $(params.IMAGE) docker://$(params.IMAGE)
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy
+spec:
+  description: Deploys application to OpenShift using openshift-client
+  params:
+    - name: image
+      type: string
+      description: The container image to deploy
+    - name: app_name
+      type: string
+      default: "product-catalogue"
+      description: The name of the application deployment
+  steps:
+    - name: deploy
+      image: quay.io/openshift/origin-cli:latest
+      script: |
+        #!/bin/bash
+        set -e
+        echo "Deploying application $(params.app_name) with image $(params.image)..."
+        if ! oc get deployment $(params.app_name) > /dev/null 2>&1; then
+          echo "Creating new deployment $(params.app_name)..."
+          oc create deployment $(params.app_name) --image=$(params.image)
+          oc expose deployment $(params.app_name) --port=8000 --target-port=8000
+        else
+          echo "Updating deployment $(params.app_name) image..."
+          oc set image deployment/$(params.app_name) $(params.app_name)=$(params.image)
+        fi
+        echo "Waiting for rollout to complete..."
+        oc rollout status deployment/$(params.app_name) --timeout=180s
+        echo "Verifying deployment and service..."
+        oc get deployment $(params.app_name)
+        oc get service $(params.app_name)
+        echo "Application $(params.app_name) successfully deployed and running on port 8000."
