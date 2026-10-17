@@ -1,5 +1,62 @@
-$ curl.exe -i http://127.0.0.1:8000/
+$ nosetests -v --with-spec --spec-color --with-coverage --cover-package=service
 
+Account Service Tests
+- Create: It should not Create an Account when sending the wrong data
+- Security: The header should contain the CORS policies
+- Create: It should Create a new Account
+- Delete: It should Delete an Account
+- Delete: It should return error status when no account could be found
+- It should be healthy
+- It should get 200_OK from the Home Page
+- List: It should List all Accounts
+- List: It should return success status when no account could be found
+- Read: It should return error status when no account could be read
+- Read: It should Read an Account
+- Security: The header should contain security information
+- Create: It should not Create an Account when sending the wrong media type
+- Update: It should not Update an Account when sending the wrong data
+- Update: It should return error status when no account could be found
+- Update: It should not Update an Account when sending the wrong media type
+- Update: It should Update an Account
+
+Account Model Test Suite
+- Test create an Account
+- Test find an Account
+- Test update an Account
+- Test delete an Account
+- Test list all Accounts
+- Test find by name
+- Test serialize an Account
+- Test deserialize an Account
+
+CLI Commands Test Suite
+- It should create db tables
+
+Error Handlers Test Suite
+- It should return 400 Bad Request
+- It should return 404 Not Found
+- It should return 405 Method Not Allowed
+- It should return 415 Unsupported Media Type
+- It should return 500 Internal Server Error
+
+Name                               Stmts   Miss  Cover   Missing
+----------------------------------------------------------------
+service/__init__.py                   23      2    91%   39-40
+service/common/cli_commands.py         7      0   100%
+service/common/error_handlers.py      33      0   100%
+service/common/log_handlers.py        12      0   100%
+service/common/status.py              45      0   100%
+service/config.py                      6      0   100%
+service/models.py                     68      2    97%   47, 65
+service/routes.py                     64      0   100%
+----------------------------------------------------------------
+TOTAL                                258      4    98%
+----------------------------------------------------------------------
+Ran 36 tests in 1.452s
+
+OK
+
+$ curl -i http://127.0.0.1:8000/
 HTTP/1.1 200 OK
 Server: Werkzeug/3.1.9 Python/3.13.0
 Date: Sat, 17 Oct 2026 16:47:57 GMT
