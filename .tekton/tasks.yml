@@ -184,7 +184,7 @@ spec:
       description: The container image to deploy
     - name: app_name
       type: string
-      default: "product-catalogue"
+      default: "cicd-app"
       description: The name of the application deployment
   steps:
     - name: deploy

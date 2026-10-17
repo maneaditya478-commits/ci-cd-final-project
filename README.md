@@ -1,6 +1,9 @@
-# Product Catalogue Microservice
+# ci-cd-final-project
 
-[![CI/CD Pipeline](https://github.com/maneaditya478-commits/product-catalogue-microservice/actions/workflows/workflow.yml/badge.svg)](https://github.com/maneaditya478-commits/product-catalogue-microservice/actions/workflows/workflow.yml)
+**Project Name:** ci-cd-final-project  
+**Application:** Product Catalogue Microservice
+
+[![CI/CD Pipeline](https://github.com/maneaditya478-commits/ci-cd-final-project/actions/workflows/workflow.yml/badge.svg)](https://github.com/maneaditya478-commits/ci-cd-final-project/actions/workflows/workflow.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9-brightgreen.svg)](https://www.python.org/)
 

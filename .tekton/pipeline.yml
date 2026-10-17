@@ -8,7 +8,7 @@ spec:
     - name: git-url
       type: string
       description: The git repository URL
-      default: "https://github.com/maneaditya478-commits/product-catalogue-microservice"
+      default: "https://github.com/maneaditya478-commits/ci-cd-final-project"
     - name: git-revision
       type: string
       description: The git revision (branch, tag)
@@ -16,11 +16,11 @@ spec:
     - name: image-name
       type: string
       description: The fully qualified image name to build and deploy
-      default: "image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/product-catalogue:latest"
+      default: "image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/cicd-app:latest"
     - name: app-name
       type: string
       description: The name of the application
-      default: "product-catalogue"
+      default: "cicd-app"
   workspaces:
     - name: pipeline-workspace
   tasks:
@@ -105,12 +105,12 @@ spec:
     name: cd-pipeline
   params:
     - name: git-url
-      value: "https://github.com/maneaditya478-commits/product-catalogue-microservice"
+      value: "https://github.com/maneaditya478-commits/ci-cd-final-project"
     - name: git-revision
       value: "main"
     - name: app-name
-      value: "product-catalogue"
+      value: "cicd-app"
   workspaces:
     - name: pipeline-workspace
       persistentVolumeClaim:
-        claimName: pipeline-pvc
+        claimName: oc-lab-pvc
